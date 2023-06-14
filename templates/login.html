@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Log In</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'stylelogin.css' %}">
+</head>
+<body>
+    {% for message in messages %}
+    <h3 style="color: red;">{{message}}</h3>
+    {% endfor %}
+    <h3>Please enter your username and password</h3>
+    <form action="login" method="POST">
+        {% csrf_token %}
+        <p>Username:</p>
+        <input type="text" name="username"/>
+        <p>Password:</p>
+        <input type="password" name="password"/><br><br>
+        <input type="submit"/>
+    </form>
+
+</body>
+</html>

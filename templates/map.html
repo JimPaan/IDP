@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Title</title>
+</head>
+<body>
+<div id="map" style="height: 500px;"></div>
+
+  <script type='text/javascript' src='http://www.bing.com/api/maps/mapcontrol?callback=loadMapScenario' async defer></script>
+  <script type='text/javascript'>
+    function loadMapScenario() {
+      var map = new Microsoft.Maps.Map(document.getElementById('map'), {
+        center: new Microsoft.Maps.Location(3.1217, 101.6537),
+        zoom: 12
+      });
+
+      {% for location in locations %}
+        var loc{{ forloop.counter }} = new Microsoft.Maps.Location({{ location.latitude }}, {{ location.longitude }});
+        var pin{{ forloop.counter }} = new Microsoft.Maps.Pushpin(loc{{ forloop.counter }});
+        map.entities.push(pin{{ forloop.counter }});
+
+        var infobox{{ forloop.counter }} = new Microsoft.Maps.Infobox(loc{{ forloop.counter }}, {
+          title: '{{ location.name }}',
+          description: '',
+          visible: false
+        });
+        infobox{{ forloop.counter }}.setMap(map);
+
+        Microsoft.Maps.Events.addHandler(pin{{ forloop.counter }}, 'click', function () {
+          infobox{{ forloop.counter }}.setOptions({ visible: true });
+        });
+      {% endfor %}
+    }
+  </script>
+</body>
+</html>

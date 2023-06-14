@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>ETA</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'buslocation.css' %}">
+    <style>
+        #map {
+            width: 82vw;
+            height: 95vh;
+            box-shadow: 0 .4rem .8rem #0005;
+            border-radius: .8rem;
+        }
+
+        #table-container {
+            margin-top: 20px;
+        }
+
+        table {
+            width: 30vw;
+            height: 15vh;
+            background-color: #fff5;
+            backdrop-filter: blur(7px);
+            box-shadow: 0 .4rem .8rem #0005;
+            border-radius: .8rem;
+            overflow: hidden;
+        }
+
+        th, td {
+            padding: 1rem;
+            text-align: center;
+            border-bottom: 1px solid #ddd;
+        }
+    </style>
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://www.bing.com/api/maps/mapcontrol?key=ArddRmKO9Knj9CzNhpXT9jBzKVKITGNyxOnV26wbuHLfGiAh8wC003AdSAFl8vmX&callback=loadMapScenario" async defer></script>
+    <script>
+        function loadMapScenario() {
+            var tableBody = document.getElementById('table-body');
+            var map = new Microsoft.Maps.Map(document.getElementById('map'), {
+                center: new Microsoft.Maps.Location(3.1217, 101.6537),
+                zoom: 16
+            });
+
+            var pins = []; // Array to store the created pins
+
+            {% for location in bus_location %}
+                var loc{{ forloop.counter }} = new Microsoft.Maps.Location({{ location.latitude }}, {{ location.longitude }});
+                var pin{{ forloop.counter }} = new Microsoft.Maps.Pushpin(loc{{ forloop.counter }}, {color: 'blue'});
+                map.entities.push(pin{{ forloop.counter }});
+
+                var infobox{{ forloop.counter }} = new Microsoft.Maps.Infobox(loc{{ forloop.counter }}, {
+                    title: 'You are here',
+                    visible: true,
+                });
+                infobox{{ forloop.counter }}.setMap(map);
+            {% endfor %}
+
+            {% for item in user_info %}
+                (function(routeId, stopId) {
+                    setInterval(function() {
+                        fetch(`/get_buslocation/${routeId}/${stopId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Remove previous pins
+                                pins.forEach(function(pin) {
+                                    map.entities.remove(pin);
+                                });
+                                tableBody.innerHTML = '';
+                                pins = [];
+
+                                data.bus_location.forEach(function(location) {
+                                    var newLocation = new Microsoft.Maps.Location(location.latitude, location.longitude);
+                                    var pin = new Microsoft.Maps.Pushpin(newLocation, {color: location.color});
+                                    var row = document.createElement('tr');
+                                    var bus_infoCell = document.createElement('td');
+                                    var etaCell = document.createElement('td');
+                                    var distanceCell = document.createElement('td');
+                                    var colorCell = document.createElement('td');
+                                    var passengerCountCell = document.createElement('td');
+
+                                    bus_infoCell.textContent = location.plate_no;
+                                    etaCell.textContent = location.eta;
+                                    distanceCell.textContent = location.distance;
+                                    colorCell.textContent = location.color;
+                                    passengerCountCell.textContent = data.passenger_counter[location.plate_no];
+
+                                    row.appendChild(bus_infoCell);
+                                    row.appendChild(etaCell);
+                                    row.appendChild(distanceCell);
+                                    row.appendChild(colorCell);
+                                    row.appendChild(passengerCountCell);
+                                    tableBody.appendChild(row);
+                                    map.entities.push(pin);
+                                    pins.push(pin);
+                                });
+                            });
+                    }, 5000);  // Refresh every 5 seconds
+                })('{{ item.route_id }}', '{{ item.stop_id }}');
+            {% endfor %}
+        }
+    </script>
+
+    <div id="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Bus Info</th>
+                    <th>ETA</th>
+                    <th>Distance</th>
+                    <th>Indicator</th>
+                    <th>Passenger Count</th>
+                </tr>
+            </thead>
+            <tbody id="table-body"></tbody>
+        </table>
+    </div>
+</body>
+</html>

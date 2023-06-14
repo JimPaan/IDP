@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+{% load static %}
+<html>
+<head>
+    <title>Tablet_Displayer</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'tablet.css' %}">
+</head>
+<body>
+    <div id="map"></div>
+
+    <script src="https://www.bing.com/api/maps/mapcontrol?key=ArddRmKO9Knj9CzNhpXT9jBzKVKITGNyxOnV26wbuHLfGiAh8wC003AdSAFl8vmX&callback=loadMapScenario" async defer></script>
+    <script>
+        function loadMapScenario() {
+            var map = new Microsoft.Maps.Map(document.getElementById('map'), {
+                center: new Microsoft.Maps.Location(3.1217, 101.6537),
+                zoom: 16
+            });
+
+            var pins = []; // Array to store the created pins
+            {% for location in locations %}
+                var loc{{ forloop.counter }} = new Microsoft.Maps.Location({{ location.latitude }}, {{ location.longitude }});
+                var pin{{ forloop.counter }} = new Microsoft.Maps.Pushpin(loc{{ forloop.counter }}, {color: 'blue'});
+                map.entities.push(pin{{ forloop.counter }});
+
+                var infobox{{ forloop.counter }} = new Microsoft.Maps.Infobox(loc{{ forloop.counter }}, {
+                    title: 'You are here',
+                    visible: true,
+                });
+                infobox{{ forloop.counter }}.setMap(map);
+            {% endfor %}
+
+            {% for item in user_info %}
+                (function(routeId, stopId) {
+                    setInterval(function() {
+                        fetch(`/get_buslocation/${routeId}/${stopId}`)
+                            .then(response => response.json())
+                            .then(data => {
+                                // Remove previous pins
+                                pins.forEach(function(pin) {
+                                    map.entities.remove(pin);
+                                });
+                                pins = [];
+
+                                data.bus_location.forEach(function(location) {
+                                    var newLocation = new Microsoft.Maps.Location(location.latitude, location.longitude);
+                                    var pin = new Microsoft.Maps.Pushpin(newLocation, {color: location.color});
+                                    map.entities.push(pin);
+                                    pins.push(pin);
+                                });
+                            });
+                    }, 5000);  // Refresh every 5 second
+                })('{{ item.route_id }}', '{{ item.stop_id }}');
+            {% endfor %}
+        }
+    </script>
+</body>
+</html>

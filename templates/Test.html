@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Route Selection</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'styleTest.css' %}">
+</head>
+<body>
+<div class="container">
+    {% for item in data %}
+    <div class="box">
+        <h1>
+            <a href="stops/{{item.route_id}}" style="text-decoration: none; color: #000080">{{item.display_name}}</a>
+        </h1>
+        <p>Path: {{item.desc}}</p>
+        <p>Route information: {{item.message_bus}}</p>
+    </div>
+    {% endfor%}
+</div>
+</body>
+</html>

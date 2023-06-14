@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Bus Stops</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'stops.css' %}">
+</head>
+<body>
+  <div class="map-container">
+    <div id="map"></div>
+  </div>
+
+  <div class="hover-boxes">
+    {% for location in locations %}
+      <div class="hover-box" onclick="showInfobox({{ forloop.counter0 }})">
+        <h3>{{ location.name }}</h3>
+        <a href="{{ location.url }}">View Details</a>
+      </div>
+    {% endfor %}
+  </div>
+
+  <script type='text/javascript' src='https://www.bing.com/api/maps/mapcontrol?key=ArddRmKO9Knj9CzNhpXT9jBzKVKITGNyxOnV26wbuHLfGiAh8wC003AdSAFl8vmX&callback=loadMapScenario' async defer></script>
+  <script type='text/javascript'>
+    var map;
+    var infoboxes = [];
+
+    function loadMapScenario() {
+      map = new Microsoft.Maps.Map(document.getElementById('map'), {
+        center: new Microsoft.Maps.Location(3.115848094188467, 101.66374281639905),
+        zoom: 15
+      });
+
+      {% for location in locations %}
+        var loc{{ forloop.counter }} = new Microsoft.Maps.Location({{ location.latitude }}, {{ location.longitude }});
+        var pin{{ forloop.counter }} = new Microsoft.Maps.Pushpin(loc{{ forloop.counter }}, {color: 'blue'});
+        map.entities.push(pin{{ forloop.counter }});
+
+        var infobox{{ forloop.counter }} = new Microsoft.Maps.Infobox(loc{{ forloop.counter }}, {
+          title: '{{ location.name }}',
+          description: '{{ location.stop_id }}',
+          visible: false,
+          actions: [
+            {
+              label: 'View Details',
+              eventHandler: function () {
+                window.open('{{ location.url }}');
+              }
+            }
+          ]
+        });
+        map.entities.push(infobox{{ forloop.counter }});
+        infoboxes.push(infobox{{ forloop.counter }});
+      {% endfor %}
+    }
+
+    function showInfobox(index) {
+      // Hide all infoboxes
+      hideAllInfoboxes();
+
+      // Show the specified infobox
+      infoboxes[index].setOptions({ visible: true });
+
+      // Move the map to the infobox location
+      map.setView({ center: infoboxes[index].getLocation() });
+    }
+
+    function hideAllInfoboxes() {
+      // Hide all infoboxes on the map
+      infoboxes.forEach(function (infobox) {
+        infobox.setOptions({ visible: false });
+      });
+    }
+  </script>
+</body>
+</html>

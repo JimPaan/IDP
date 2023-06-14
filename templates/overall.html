@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+{% load static %}
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Analysis</title>
+    <link rel="stylesheet" type="text/css" href="{% static 'overall.css' %}">
+<body>
+<table class="graph">
+  <caption>Percentage of Seats Taken</caption>
+  <thead>
+    <tr>
+      <th scope="col">Item</th>
+      <th scope="col">Percent</th>
+    </tr>
+  </thead>
+  <tbody>
+    {% for post in posts %}
+      <tr style="height:calc(({{post.numPass}}/{{post.totalseats}})*100%)">
+        <th scope="row">{{post.jaja}}</th>
+        <td><span>{{post.numPass}}</span></td>
+      </tr>
+    {% endfor %}
+  </tbody>
+</table>
+</body>
+</html>
